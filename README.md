@@ -187,3 +187,4 @@ eventsphere-ai/
 
 EventSphere AI is an event management project.
 This documentation section provides an overview of the project.
+# prajakta Bhambar
