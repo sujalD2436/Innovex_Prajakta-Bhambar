@@ -1,0 +1,29 @@
+EVENTSPHERE AI — FASTAPI + REACT + MONGODB (WINDOWS)
+====================================================
+Open eventsphere-ai in VS Code and run PowerShell:
+
+1) py -3.12 -m venv .venv
+2) Set-ExecutionPolicy -Scope Process Bypass
+3) .\.venv\Scripts\Activate.ps1
+4) python -m pip install -r server_py\requirements.txt
+5) npm install
+6) Copy-Item server_py\.env.example server_py\.env
+7) Copy-Item client\.env.example client\.env
+8) python -c "import secrets; print(secrets.token_hex(32))"
+   Copy secret to JWT_SECRET in server_py/.env
+9) Start MongoDB (local Windows service, Docker, or Atlas connection)
+   Docker option: docker compose up -d
+10) npm run seed
+11) npm run dev
+
+Web UI: http://localhost:5173
+API health: http://localhost:5000/api/health
+FastAPI Swagger: http://localhost:5000/docs
+
+Demo student: student@eventsphere.demo / Demo@12345
+Demo organizer: organizer@eventsphere.demo / Demo@12345
+
+Verify: npm test && npm run build && npm run smoke
+The npm smoke test REQUIRES running FastAPI + MongoDB.
+OCR needs an optional native Tesseract installation on Windows.
+See README.md for full instructions and GitHub first-push commands.

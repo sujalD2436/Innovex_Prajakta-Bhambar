@@ -1,0 +1,23 @@
+{
+  "name": "eventsphere-ai",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n FASTAPI,WEB -c blue,green \"python -m uvicorn app.main:app --app-dir server_py --reload --port 5000\" \"npm run dev -w client\"",
+    "dev:api": "python -m uvicorn app.main:app --app-dir server_py --reload --port 5000",
+    "dev:web": "npm run dev -w client",
+    "seed": "python server_py/seed.py",
+    "build": "npm run build -w client",
+    "test": "python -m pytest server_py/tests -q",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
