@@ -181,3 +181,6 @@ eventsphere-ai/
 - Port `5000` already in use → stop the other backend; this React client points to port 5000.
 - OCR returns `503` → install native Tesseract OCR, set `TESSERACT_CMD` or type details manually.
 - API shows `status: db-disconnected` → inspect MongoDB before testing frontend.
+
+
+# created by Prajakta
