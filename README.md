@@ -183,3 +183,7 @@ eventsphere-ai/
 - API shows `status: db-disconnected` → inspect MongoDB before testing frontend.
 
 # Created by Prajakta, Sujal Das, Namita geete, Rajendra Vishnoi
+## Project Documentation
+
+EventSphere AI is an event management project.
+This documentation section provides an overview of the project.
