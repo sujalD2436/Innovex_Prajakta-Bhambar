@@ -182,4 +182,4 @@ eventsphere-ai/
 - OCR returns `503` → install native Tesseract OCR, set `TESSERACT_CMD` or type details manually.
 - API shows `status: db-disconnected` → inspect MongoDB before testing frontend.
 
-# Created by Prajakta, Sujal, Namita, Rajendra
+# Created by Prajakta, Sujal Das, Namita, Rajendra Vishnoi
