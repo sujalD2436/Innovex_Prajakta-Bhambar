@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { QRCodeSVG } from 'qrcode.react';
+import { Html5QrcodeScanner, Html5QrcodeScanType, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { api, hasToken, saveToken } from './api.js';
 import {
   ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, Bell, CalendarDays, Camera, Check,
@@ -126,23 +127,106 @@ function Tickets({notify,onGoDiscover}) {
     <div className="tickets-grid">{tickets.map(t=><div className="ticket-card" key={t._id}><div className="ticket-main"><Chip>{t.event?.category||'Event'}</Chip><h3>{t.event?.title||'Event no longer available'}</h3><p><CalendarDays size={14}/> {t.event?formatDate(t.event.date):'-'} · {t.event?.time}</p><p><MapPin size={14}/> {t.event?.venue}, {t.event?.locality}</p><span className={`ticket-status ${t.checkedInAt?'used':''}`}>{t.checkedInAt?<><CheckCircle2 size={14}/> Checked in</>:<><CheckCircle2 size={14}/> Confirmed</>}</span></div><div className="ticket-qr"><QRCodeSVG value={t.ticketToken} size={145} bgColor="#ffffff" fgColor="#111830" marginSize={1}/><span>SCAN AT ENTRY</span><button onClick={()=>{navigator.clipboard?.writeText(t.ticketToken).then(()=>notify('Ticket code copied.')).catch(()=>notify('Unable to copy code.','error'));}}><Copy size={13}/> Copy code</button></div></div>)}</div>}
   </section>;
 }
-function CameraScanner({onRead,notify}) {
-  const videoRef=useRef(null);const streamRef=useRef(null);const rafRef=useRef(null);const activeRef=useRef(false);
-  const [on,setOn]=useState(false);
-  const stop=useCallback(()=>{activeRef.current=false;cancelAnimationFrame(rafRef.current);streamRef.current?.getTracks().forEach(t=>t.stop());streamRef.current=null;setOn(false);},[]);
-  useEffect(()=>()=>stop(),[stop]);
-  async function start() {
-    if (!('BarcodeDetector' in window)) return notify('Camera QR scanning is unsupported in this browser. Paste the ticket code below.','error');
-    try {
-      const detector=new window.BarcodeDetector({formats:['qr_code']});
-      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      streamRef.current=stream; activeRef.current=true;
-      videoRef.current.srcObject=stream; await videoRef.current.play(); setOn(true);
-      async function scan(){if(!activeRef.current)return;try{const codes=await detector.detect(videoRef.current);if(codes.length&&codes[0].rawValue){onRead(codes[0].rawValue);stop();return;}}catch{}rafRef.current=requestAnimationFrame(scan);}scan();
-    } catch(e){stop();notify(`Camera unavailable: ${e.message}`,'error');}
+function CameraScanner({ onRead, notify }) {
+  const scannerRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Stop camera tracks and remove the scanner when the organizer leaves this tab.
+  useEffect(() => {
+    return () => {
+      const scanner = scannerRef.current;
+      scannerRef.current = null;
+      if (scanner) {
+        Promise.resolve().then(() => scanner.clear()).catch(() => {});
+      }
+    };
+  }, []);
+
+  async function closeScanner() {
+    const scanner = scannerRef.current;
+    scannerRef.current = null;
+    if (scanner) {
+      try {
+        await scanner.clear();
+      } catch (err) {
+        console.debug('Scanner already closed:', err);
+      }
+    }
+    setIsOpen(false);
   }
-  return <div className="camera-box"><video ref={videoRef} className={on?'active':''} playsInline muted aria-label="QR scanner camera"/>{on?<button className="btn secondary" onClick={stop}><X size={16}/> Stop camera</button>:<button className="btn secondary" onClick={start}><Camera size={17}/> Start QR camera scanner</button>}<small>Camera access requires localhost or HTTPS and browser QR support. Manual verification always works.</small></div>;
+
+  function openScanner() {
+    if (scannerRef.current) return;
+
+    if (!window.isSecureContext) {
+      notify('Camera access needs HTTPS or localhost. You can still try uploading a QR image.', 'error');
+    }
+
+    try {
+      const scanner = new Html5QrcodeScanner(
+        'eventsphere-qr-reader',
+        {
+          fps: 10,
+          qrbox: (viewWidth, viewHeight) => {
+            const size = Math.max(100, Math.min(240, Math.floor(Math.min(viewWidth, viewHeight) * 0.75)));
+            return { width: size, height: size };
+          },
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          supportedScanTypes: [
+            Html5QrcodeScanType.SCAN_TYPE_CAMERA,
+            Html5QrcodeScanType.SCAN_TYPE_FILE,
+          ],
+          rememberLastUsedCamera: false,
+          showTorchButtonIfSupported: true,
+        },
+        false
+      );
+      scannerRef.current = scanner;
+      setIsOpen(true);
+      let handled = false;
+
+      scanner.render(
+        (decodedText) => {
+          if (handled) return;
+          let ticket = decodedText.trim();
+          if (!/^[0-9a-f]{48}$/i.test(ticket)) {
+            try {
+              const obj = JSON.parse(ticket);
+              ticket = String(obj.ticketToken || obj.ticket || '').trim();
+            } catch {
+              // QR contents were plain text, not a structured ticket.
+            }
+          }
+          if (!/^[0-9a-f]{48}$/i.test(ticket)) {
+            notify('QR detected, but it is not an EventSphere ticket. Scan a ticket from My Tickets.', 'error');
+            return;
+          }
+          handled = true;
+          onRead(ticket);
+          notify('Ticket QR scanned! Click Verify ticket to record attendance.');
+          void closeScanner();
+        },
+        () => { /* No QR found in this frame; keep scanning. */ }
+      );
+    } catch (err) {
+      scannerRef.current = null;
+      setIsOpen(false);
+      notify(`Unable to open QR scanner: ${err.message}`, 'error');
+    }
+  }
+
+  return <div className="camera-box">
+    {!isOpen && <button type="button" className="btn secondary" onClick={openScanner}>
+      <Camera size={17}/> Open QR scanner
+    </button>}
+    <div id="eventsphere-qr-reader" style={{maxWidth:440,width:'100%',margin:'12px auto',background:'#fff',color:'#111827',borderRadius:12,overflow:'hidden'}} />
+    {isOpen && <button type="button" className="btn secondary" onClick={closeScanner}>
+      <X size={16}/> Close scanner
+    </button>}
+    <small>Choose camera or image upload in the scanner. Cameras require HTTPS or localhost. You can also paste a ticket code below.</small>
+  </div>;
 }
+
 function Studio({notify}) {
   const [form,setForm]=useState(INITIAL_FORM); const [uploading,setUploading]=useState(false); const [saving,setSaving]=useState(false); const [checking,setChecking]=useState(false);
   const [duplicates,setDuplicates]=useState([]); const [overview,setOverview]=useState([]); const [scannerCode,setScannerCode]=useState(''); const [scanResult,setScanResult]=useState(null); const [scanLoading,setScanLoading]=useState(false); const [tab,setTab]=useState('create');
