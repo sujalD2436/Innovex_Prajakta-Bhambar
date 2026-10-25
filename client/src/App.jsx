@@ -38,13 +38,26 @@ function Modal({title, onClose, children, wide=false}) {
 function AuthModal({onClose,onSuccess}) {
   const [mode,setMode] = useState('login'), [role,setRole] = useState('attendee');
   const [name,setName] = useState(''), [email,setEmail] = useState(''), [password,setPassword] = useState(''), [working,setWorking] = useState(false), [error,setError] = useState('');
-  async function submit(e, demoRole) {
-    e?.preventDefault(); setWorking(true); setError('');
+  async function submit(e) {
+    e.preventDefault();
+    if (working) return;
+    setWorking(true);
+    setError('');
     try {
-      const payload = demoRole ? { email: demoRole==='attendee'?'student@eventsphere.demo':'organizer@eventsphere.demo', password:'Demo@12345' } : mode==='login' ? { email, password } : { name, email, password, role };
-      const result = await api(`/auth/${demoRole||mode==='login'?'login':'register'}`, { method:'POST', body:payload });
-      saveToken(result.token); onSuccess(result.user); onClose();
-    } catch (err) { setError(err.message); } finally { setWorking(false); }
+      const isLogin = mode === 'login';
+      const endpoint = isLogin ? '/auth/login' : '/auth/register';
+      const payload = isLogin
+        ? { email: email.trim(), password }
+        : { name: name.trim(), email: email.trim(), password, role };
+      const result = await api(endpoint, { method: 'POST', body: payload });
+      saveToken(result.token);
+      onSuccess(result.user);
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setWorking(false);
+    }
   }
   return <Modal title={mode==='login'?'Welcome back':'Join EventSphere'} onClose={onClose}>
     <p className="modal-sub">Your next opportunity is waiting for you.</p>
@@ -57,7 +70,6 @@ function AuthModal({onClose,onSuccess}) {
       {error&&<p className="error-text">{error}</p>}
       <button className="btn primary full" disabled={working} type="submit">{working?'Connecting...':mode==='login'?'Log in':'Create account'} <ArrowRight size={16}/></button>
     </form>
-    <div className="demo-login"><span>TRY THE LIVE DEMO</span><div><button disabled={working} onClick={()=>submit(null,'attendee')}><GraduationCap size={15}/> Student</button><button disabled={working} onClick={()=>submit(null,'organizer')}><ShieldCheck size={15}/> Organizer</button></div><small>Seed the database first. These accounts are for local demos only.</small></div>
   </Modal>;
 }
 function EventCard({event, onOpen}) {
