@@ -1,190 +1,269 @@
-# EventSphere AI — React + FastAPI + MongoDB
+<div align="center">
 
-**VECNAVERSE 2026 · Software Development · Hyperlocal Event Discovery & Community Engagement**
+# 🌐 EventSphere AI
 
-**Poster → AI-assisted extraction → Community discovery → Registration → QR attendance → Insights**
+### Discover nearby. Connect smarter.
 
-This is a functional *hackathon prototype source project*, not a guaranteed winning or production-ready service. It has a React UI, Python FastAPI REST backend, and MongoDB persistence. The seeded Pune events are fictional. The matching engine is a transparent rule-based algorithm, **not** trained machine learning. The OCR output requires human review.
+**VECNAVERSE 2026 | Software Development | Hyperlocal Event Discovery & Community Engagement**
 
-## 1. What you will build
+*From a scattered event poster to a discoverable community experience — all in one platform.*
 
-- Attendee/organizer signup and JWT login; profile interests
-- Discover upcoming events, search, categories, nearby map and personalized event ranking
-- Organizer create/publish, duplicate warnings and dashboard metrics
-- Upload a PNG/JPEG poster to extract draft event data with Tesseract OCR (optional native dependency)
-- Student registration + random 48-character QR ticket
-- Owner-restricted QR verification with single-use check-in, manual ticket-token fallback
-- Interactive API docs at **http://localhost:5000/docs**
-- Six fictional demonstration events and two demo accounts
+[![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-149ECA?style=for-the-badge&logo=react&logoColor=white)](client/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](server_py/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![CI](https://github.com/sujalD2436/Innovex_Prajakta-Bhambar/actions/workflows/ci.yml/badge.svg)](https://github.com/sujalD2436/Innovex_Prajakta-Bhambar/actions/workflows/ci.yml)
 
-**Backend APIs remain compatible with the previous React/Express frontend. The Express `server/` directory was replaced with `server_py/`.**
+**[Features](#-key-features) · [Architecture](#-system-architecture) · [Run Locally](#-getting-started) · [Live Demo Flow](#-two-minute-hackathon-demo) · [Team](#-team)**
 
-## 2. Requirements
+</div>
 
-- Windows 10/11 with **Python 3.11 or 3.12** and **Node.js 22.12+**, npm and VS Code
-- **MongoDB** via local Windows service, Docker or MongoDB Atlas
-- Internet to install Python/npm packages and load public map tiles
-- Optional: native [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for poster scanning. Event creation, search and tickets work without it.
+---
 
-## 3. Windows PowerShell — exact setup
+## 🚀 Project Overview
 
-Extract the ZIP and open its `eventsphere-ai` folder in VS Code. In **Terminal → New Terminal**:
+**EventSphere AI** is a full-stack web application designed to help students and local communities discover relevant events, and help organizers move from promotion to measurable participation.
 
-### Step 1 — make a virtual environment
+Campus workshops, hackathons, meetups and cultural events are often scattered across posters, social feeds and messaging groups. EventSphere AI brings the journey into a single workflow:
 
-```powershell
-py -3.12 -m venv .venv
-Set-ExecutionPolicy -Scope Process Bypass
-.\.venv\Scripts\Activate.ps1
-python --version
+**Poster → Editable OCR Draft → Publish → Discover → Register → QR Ticket → Verified Attendance → Insights**
+
+Built for **VECNAVERSE 2026**, the repository contains a working **hackathon prototype** with a responsive React interface, a FastAPI backend and MongoDB storage. It is suitable for demonstration and further development; it is **not presented as a production-hardened service**.
+
+## 🎯 The Problem & Our Solution
+
+| Today's challenge | EventSphere AI approach |
+| --- | --- |
+| Event information is fragmented across posters and social channels. | A searchable, category-filtered feed with a nearby event map. |
+| Posting event information repeatedly takes organizer time. | Poster OCR prepares an **editable draft**, followed by human review. |
+| Students see too many irrelevant announcements. | Explainable matching using interests, distance and upcoming dates. |
+| Duplicate event posts create confusion. | Similarity-based warnings before an organizer publishes. |
+| Organizers cannot easily measure actual attendance. | Unique QR tickets, organizer-only check-in and participation metrics. |
+
+## ✨ Key Features
+
+| For attendees | For organizers | Platform intelligence |
+| --- | --- | --- |
+| Sign up and sign in securely | Create and publish event listings | OCR-assisted event field extraction |
+| Explore upcoming local events | Check for likely duplicate listings | Rule-based, explainable recommendations |
+| Search, filter and explore a map | Scan ticket QR using a camera **or image upload** | Interest, proximity and timing signals |
+| Personalize discovery with interests | Manually enter a ticket code when needed | Duplicate title/date/locality scoring |
+| Register and view QR tickets | See registrations, verified arrivals and attendance rate | Role-based access and single-use check-ins |
+
+### What makes it different?
+
+Our contribution is the **end-to-end “Poster-to-Participation” workflow**: instead of treating event promotion, discovery, registration and attendance as unrelated tasks, EventSphere AI connects them into a single community-focused experience.
+
+> **A note on “AI”:** Tesseract OCR extracts text from posters, while current event recommendations and duplicate detection are **transparent, rule-based algorithms**. No custom-trained machine-learning model or predictive probability is claimed. OCR results must be reviewed before publishing.
+
+## 🧱 System Architecture
+
+```mermaid
+flowchart TD
+    A[Attendee / Organizer] --> B[React + Vite Web App]
+    B --> C[FastAPI REST API]
+    C --> D[(MongoDB)]
+    C --> E[Event matching + duplicate rules]
+    C --> F[Tesseract OCR - optional]
+    B --> G[QR generation + camera / image scanner]
+    G --> C
+    C --> H[Organizer-only attendance verification]
+    H --> D
 ```
 
-If `py -3.12` isn't installed, use `py -3.11` or `python -m venv .venv`.
+**Data flow:** Users authenticate with JWT; organizers manage events; attendees register and receive 48-character random ticket tokens encoded as QR codes; organizers verify their own tickets through FastAPI. A successful check-in is recorded once, and replay attempts are rejected.
 
-### Step 2 — install dependencies
+### Technology Stack
+
+| Layer | Technologies |
+| --- | --- |
+| Frontend | React 19, Vite, JavaScript, Tailwind CSS, Lucide React |
+| Map | React Leaflet, Leaflet and public map tiles |
+| API | Python 3.11/3.12, FastAPI, Uvicorn, Pydantic |
+| Database | MongoDB, PyMongo |
+| Authentication | JWT (PyJWT), bcrypt password hashing, attendee/organizer roles |
+| QR tickets | `qrcode.react` for generation; `html5-qrcode` for camera/image scanning |
+| OCR | Tesseract OCR via `pytesseract` (optional native installation) |
+| Quality checks | Pytest, full-stack smoke script, GitHub Actions |
+| Deployment design | Vercel (frontend), Render (API), MongoDB Atlas (database) |
+
+## 🗂️ Repository Structure
+
+```text
+.
+├── client/
+│   ├── src/
+│   │   ├── App.jsx              # Pages, authentication, tickets and organizer studio
+│   │   ├── api.js               # Frontend API client
+│   │   └── styles.css           # Application styling
+│   └── package.json
+├── server_py/
+│   ├── app/
+│   │   ├── main.py              # FastAPI endpoints
+│   │   ├── database.py          # MongoDB connection and indexes
+│   │   ├── intelligence.py      # Matching, duplicate rules and OCR parsing
+│   │   └── security.py          # JWT and role-based access
+│   ├── tests/                   # Python rule-based intelligence tests
+│   ├── requirements.txt
+│   └── seed.py                  # Local-only fictional demo data
+├── docs/
+│   ├── API_REFERENCE.md
+│   ├── DEMO_AND_PITCH.md
+│   └── demo-poster.png
+├── scripts/smoke.mjs            # API end-to-end smoke test
+├── .github/workflows/ci.yml    # Build and test workflow
+├── docker-compose.yml          # Optional local MongoDB
+└── package.json                # Root npm workspace commands
+```
+
+## ⚡ Getting Started
+
+### Prerequisites
+
+- **Python 3.11 or 3.12**
+- **Node.js 22.12+** and npm
+- **MongoDB** running locally, through Docker, or accessible in Atlas
+- Windows PowerShell commands below; equivalent commands work on macOS/Linux
+- Optional: native **Tesseract OCR** for poster extraction
+
+### 1. Clone and install
 
 ```powershell
-python -m pip install --upgrade pip
+git clone https://github.com/sujalD2436/Innovex_Prajakta-Bhambar.git
+cd Innovex_Prajakta-Bhambar
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r server_py\requirements.txt
 npm install
 ```
 
-### Step 3 — configure the backend and frontend
+If Python 3.12 is not installed, create the virtual environment with Python 3.11 instead.
+
+### 2. Configure environment variables
+
+Create **`server_py/.env`** manually with the following keys, replacing the secret placeholder with a randomly generated value:
+
+```dotenv
+MONGO_URI=mongodb://127.0.0.1:27017/eventsphere_ai
+JWT_SECRET=REPLACE_WITH_A_NEW_RANDOM_SECRET_OF_AT_LEAST_32_CHARACTERS
+CLIENT_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Generate a secret with:
 
 ```powershell
-Copy-Item server_py\.env.example server_py\.env
-Copy-Item client\.env.example client\.env
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Open `server_py/.env` and **replace** `JWT_SECRET=` with the generated random key. Set `MONGO_URI=` to your MongoDB URI. Leave `CLIENT_ORIGIN=http://localhost:5173`. Never share or commit `.env` files.
+To specify the frontend API explicitly, copy the checked-in frontend example:
 
-### Step 4 — launch MongoDB
+```powershell
+Copy-Item client\.env.example client\.env
+```
 
-**With Docker Desktop:**
+Its local value is `VITE_API_URL=http://localhost:5000/api`. **Never commit `.env` files or database credentials.**
+
+### 3. Start MongoDB
+
+Use your local MongoDB Windows service, a MongoDB Atlas URI in `MONGO_URI`, or Docker Desktop:
 
 ```powershell
 docker compose up -d
 ```
 
-**Without Docker:** run the local MongoDB Windows service (default `mongodb://127.0.0.1:27017/eventsphere_ai`) **or** replace `MONGO_URI` with your Atlas connection URI. If Atlas, create a database user and allow your current IP in Network Access. Never commit Atlas credentials.
-
-### Step 5 — seed and start both applications
+### 4. Start the application
 
 ```powershell
-npm run seed
 npm run dev
 ```
 
-- **Frontend:** http://localhost:5173
-- **FastAPI health:** http://localhost:5000/api/health (should show `"status":"ok"`)
-- **Swagger UI:** http://localhost:5000/docs
-- **OpenAPI specification:** http://localhost:5000/openapi.json
+| Service | Local URL |
+| --- | --- |
+| EventSphere AI website | [localhost:5173](http://localhost:5173) |
+| FastAPI health endpoint | [localhost:5000/api/health](http://localhost:5000/api/health) |
+| Interactive API docs | [localhost:5000/docs](http://localhost:5000/docs) |
+| OpenAPI specification | [localhost:5000/openapi.json](http://localhost:5000/openapi.json) |
 
-The `npm run dev` script starts both FastAPI using Uvicorn and React using Vite; the active Python virtual environment must be selected in that terminal.
+For a **local-only demo**, you can optionally populate fictional events and shared testing users:
 
-### Demo credentials (local hackathon only)
+```powershell
+npm run seed
+```
 
-| Role | Email | Password |
-|---|---|---|
-| Student | `student@eventsphere.demo` | `Demo@12345` |
-| Organizer | `organizer@eventsphere.demo` | `Demo@12345` |
+**Do not run the seed script against a public production database** or publish shared demo accounts. Normal attendee and organizer registration is available through the app.
 
-Do not publish a deployed service with demo accounts enabled. The seed script does not reset existing passwords.
+### Optional — Poster OCR
 
-## 4. Enable poster scanning on Windows (optional)
-
-The Python `pytesseract` package **does not install the Tesseract executable**. Install the native Tesseract OCR program and English language data separately. You may use an available Windows installer from the [Tesseract project documentation](https://tesseract-ocr.github.io/tessdoc/Installation.html).
-
-If `tesseract --version` works, the API should detect it automatically. Otherwise add this line to `server_py/.env` (change it to your actual path):
+`pytesseract` is a Python wrapper; it does not install the native Tesseract executable. Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html), then verify `tesseract --version` works. If necessary, set the absolute executable path in `server_py/.env`:
 
 ```dotenv
 TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
 ```
 
-Restart `npm run dev`, then test with `docs/demo-poster.png` in Organizer Studio. OCR extracts editable **draft** data; verify the date/time/venue before publishing.
+Try the example poster at [`docs/demo-poster.png`](docs/demo-poster.png). Treat OCR text and extracted date/time/venue as suggestions until a person reviews them.
 
-## 5. Test before your first GitHub push
-
-With MongoDB and API running, use a **second PowerShell terminal** from the same folder:
+## 🧪 Testing & Quality
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
-npm test
-npm run build
-npm run smoke
+npm test           # Offline Python rules/tests
+npm run build      # Production frontend build
+npm run smoke      # Full-stack API smoke test (requires running API + seeded data)
 ```
 
-`npm test` runs offline Python intelligence tests; `npm run build` compiles the React frontend; `npm run smoke` logs in as demo accounts and checks the API from organizer publish → student registration → ticket → ownership enforcement → check-in → replay prevention. Running the smoke test creates additional test data in MongoDB.
+The smoke test exercises organizer publishing, attendee registration, ticket creation, role enforcement, one-time check-in and replay prevention. **It inserts test records into the connected database**; run it against a dedicated local or test database, not production.
 
-### First push command
+GitHub Actions runs Python tests and the React production build on pushes and pull requests. See the [CI workflow](.github/workflows/ci.yml).
 
-Create an empty GitHub repository named `eventsphere-ai`, then:
+## 🎬 Two-Minute Hackathon Demo
 
-```powershell
-git init
-git add .
-git commit -m "feat: React FastAPI MongoDB EventSphere MVP"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/eventsphere-ai.git
-git push -u origin main
-```
+1. **Discover:** Find a local workshop or hackathon from the event feed and map.
+2. **Create:** As an organizer, upload the [sample poster](docs/demo-poster.png), review the OCR draft and publish an event.
+3. **Recommend:** Show how interests, distance and date influence event ranking.
+4. **Register:** As an attendee, register and open **My Tickets** to display the QR code.
+5. **Check in:** Return as the event organizer and scan the QR using a camera, upload a QR image, or paste the ticket token.
+6. **Measure:** Show verified attendance on the organizer dashboard, and demonstrate that a second check-in is rejected.
 
-Replace `YOUR_USERNAME`. **Verify no `.env`, `.venv`, or secrets are staged** with `git status` before pushing. Do not claim the full integration tests passed unless they pass on your machine.
+See the [full demo script and judge Q&A](docs/DEMO_AND_PITCH.md) and [API reference](docs/API_REFERENCE.md).
 
-## 6. Hackathon demo sequence
+## ☁️ Deployment Configuration
 
-1. Launch Discover with fictional seeded events; search `CodeSprint` and switch to map.
-2. Login as organizer and upload `docs/demo-poster.png`; review OCR-extracted fields.
-3. Create a future workshop, try duplicate check and publish.
-4. Login as student, open the event, register and view `My tickets` QR.
-5. Switch to organizer, use QR check-in (or paste ticket token), confirm attendance.
-6. Repeat the code to show check-in replay is blocked; open organizer analytics.
+The frontend and backend are deployed as separate services. **Do not assume a live deployment exists until the actual service URLs and health checks have been verified.**
 
-See `docs/DEMO_AND_PITCH.md` for the five required slides and two-minute demo script.
+| Platform | Source / setting | Required configuration |
+| --- | --- | --- |
+| **Vercel** | GitHub `main`, root directory `client`, Vite build, output `dist` | `VITE_API_URL=https://YOUR-RENDER-SERVICE.onrender.com/api` |
+| **Render** | GitHub `main`, root directory `server_py` | Build: `pip install -r requirements.txt`; start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| **MongoDB Atlas** | Cloud MongoDB cluster | Dedicated database user, database URI, allowed Render outbound IP ranges |
 
-## 7. Project structure
+Set `MONGO_URI`, a new `JWT_SECRET` (at least 32 characters) and `CLIENT_ORIGIN=https://YOUR-VERCEL-DOMAIN` in **Render's private environment configuration**. A Render deployment without the native Tesseract binary can still support manual event creation, but **poster OCR requires installing that binary separately**.
 
-```text
-eventsphere-ai/
-├── client/                  React/Vite frontend (unchanged API contract)
-│   └── src/                 App.jsx, api.js, styles.css
-├── server_py/               Python FastAPI backend
-│   ├── app/                 main.py (REST routes), security.py, database.py, intelligence.py
-│   ├── tests/               offline rule-based intelligence tests
-│   ├── .env.example
-│   ├── requirements.txt
-│   └── seed.py
-├── docs/                    API reference, demo pitch, first push, sample poster
-├── scripts/smoke.mjs        full-stack smoke tester (run after starting API)
-├── docker-compose.yml      optional local MongoDB
-├── .github/workflows/ci.yml
-└── package.json            npm scripts for Python + React
-```
+## 🔒 Scope, Security & Responsible Claims
 
-## 8. Known prototype limitations
+This is a completed **hackathon MVP codebase**, not a certified production deployment. Current boundaries include:
 
-- JWT is stored in browser localStorage for speed: switch to hardened sessions for production.
-- Rule-based recommendations indicate *interest match*, not AI-predicted outcomes.
-- Duplicate check isn't a guarantee that listings are legitimate or unique.
-- Registration capacity isn't transactionally protected against simultaneous requests; production requires atomic counters or MongoDB transactions.
-- OCR depends on system Tesseract and image quality; uploaded images have a 4 MB limit and must be PNG/JPEG.
-- Camera QR scanning depends on browser support for `BarcodeDetector`; manual code works everywhere.
-- This prototype does not verify organizer identities, process payments, or scrape social networks.
-- API uses synchronous PyMongo from standard FastAPI `def` endpoints, intentionally simple for a 24-hour hackathon.
+- Recommendations and duplicate detection are explainable rules; they are not trained AI prediction models.
+- OCR can misread details and requires manual confirmation.
+- Attendee/organizer roles are enforced, but organizers are not identity-verified or moderated.
+- JWT is kept in browser `localStorage`; production should use hardened sessions and additional protections.
+- Event capacity updates are not transactionally protected against highly concurrent registration.
+- QR codes carry unique random tokens, but attendance relies on a working backend and MongoDB connection.
+- This system does not currently process payments or guarantee event authenticity.
 
-## 9. Troubleshooting
+Future work includes verified organizer onboarding, moderation, stronger account recovery and session security, reliable high-volume ticket inventory controls, and semantic multilingual recommendations.
 
-- `ModuleNotFoundError: pymongo` → activate `.venv` and run `python -m pip install -r server_py\requirements.txt`.
-- `Set JWT_SECRET` → copy `.env.example`, put at least 32 random characters in `server_py/.env`.
-- `MongoDB connection failed` → start MongoDB or correct Atlas URI, user, password and IP allowlist.
-- Port `5000` already in use → stop the other backend; this React client points to port 5000.
-- OCR returns `503` → install native Tesseract OCR, set `TESSERACT_CMD` or type details manually.
-- API shows `status: db-disconnected` → inspect MongoDB before testing frontend.
+## 👥 Team
 
-# Created by Prajakta, Sujal Das, Namita geete, Rajendra Vishnoi
-## Project Documentation
+**VECNAVERSE 2026 — EventSphere AI**
 
-EventSphere AI is an event management project.
-This documentation section provides an overview of the project.
-# prajakta Bhambar
+- **Prajakta Bhambar**
+- **Sujal Das**
+- **Namita Geete**
+- **Rajendra Vishnoi**
+
+---
+
+<div align="center">
+
+**Built for the VECNAVERSE 2026 hackathon.**  
+*Discover opportunities. Build communities. Measure participation.*
+
+</div>
